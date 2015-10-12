@@ -24,22 +24,50 @@
 
 """Matcher API."""
 
-from .config import MATCHER_QUERIES
-from .core import execute
+from .core import execute, get_queries
+
 from .errors import NoQueryDefined
 
 
-def match(record, queries=None, index='records', doc_type='record'):
+def match(record, queries=None, validator=None, **kwargs):
+    """Find duplicates of the given record.
+
+    This function is a generator, which returns one result at a time.
+    The result is of class `MatchResult`, which is an abstract representation
+    of a result returned by an engine.
+
+    The API is agnostic of implementation-required parameters, such as
+    the `index` and the `doc_type` for Elasticsearch. The idea is to pass
+    them as keyword arguments: the implementation then passes them down to
+    the actual implementation in the engine.
+
+    NOTE: Callers might find tedious that they have to write boilerplate like
+    ```
+    match(r, index='records', doc_type='record')
+    ```
+    every single time; the idea is to encourage them to define a method in the
+    client code with signature
+    ```
+    match_record(r)
+    ```
+    which wraps the previous keyword arguments. If they do this, they will have
+    encapsulated the logic that assumes a particular engine in a single method.
+    """
     if not queries:
-        try:
-            queries = MATCHER_QUERIES[index][doc_type]
-        except KeyError:
-            raise NoQueryDefined('TODO')
+        queries = get_queries(**kwargs)
+
+        if not queries:
+            raise NoQueryDefined('No query passed or defined in '
+                                 ' MATCHER_QUERIES.')
+
+    if not validator:
+        def validator(record, result):
+            return True
 
     for query in queries:
-        result = execute(query, record, index, doc_type)
+        results = execute(query, record, **kwargs)
 
-        if result:
-            return result
-
-    return None
+        if results:
+            for result in results:
+                if validator(record, result):
+                    yield result

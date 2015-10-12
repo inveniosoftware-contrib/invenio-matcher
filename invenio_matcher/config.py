@@ -24,30 +24,30 @@
 
 """Matcher configuration."""
 
+MATCHER_ENGINE = 'es'
+"""The currently selected engine. Has to correspond to a filename in
+`matcherext/engines`. The default engine is Elasticsearch."""
+
+MATCHER_QUERIES = {}
+"""The currently defined queries. Here's an example of the format:
+```
 MATCHER_QUERIES = {
-    'records': {
-        'record': [
-            {
-                'match': 'doi.doi',
-                'type': 'exact'
-            },
-            {
-                'match': 'report_number.primary',
-                'with': 'report_number.secondary',
-                'type': 'exact'
-            },
-            {
-                'match': 'title.title',
-                'type': 'fuzzy'
-            },
-            {
-                'type': 'query',
-                'query': {
-                    'term': {
-                        'ids.doi': '{{ r.doi.doi }}'
-                    }
-                }
-            }
-        ]
+    'es': {
+        'records': {
+            'record': [
+                ...
+            ],
+            'workflow': [
+                ...
+            ]
+        }
     }
 }
+```
+we only require that it is an object with keys the engines. The
+values are left to the discretion of the user.
+
+For Elasticsearch, we use nested dictionaries to denote indices
+and doc_types, so that query retrieval is just a dictionary
+traversal.
+"""

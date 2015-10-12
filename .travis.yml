@@ -24,9 +24,12 @@
 notifications:
   email: false
 
+sudo: false
+
 services:
   - mysql
   - redis
+  - elasticsearch
 
 language: python
 
@@ -43,25 +46,28 @@ python:
   - "2.7"
 
 before_install:
-  - "sudo apt-get update"
-  - "sudo apt-get install python-dev"
   - "travis_retry pip install --upgrade pip"
-  - "travis_retry pip install mock"
+  - "travis_retry pip install --upgrade pytest"
+  - "travis_retry pip install --upgrade mock"
+  - "travis_retry pip install check-manifest mock twine wheel coveralls"
   - "python requirements.py --extras=$REXTRAS --level=min > .travis-lowest-requirements.txt"
   - "python requirements.py --extras=$REXTRAS --level=pypi > .travis-release-requirements.txt"
   - "python requirements.py --extras=$REXTRAS --level=dev > .travis-devel-requirements.txt"
+  - "mkdir -p ${VIRTUAL_ENV}/var/invenio.base-instance/"
+  - "cp .travis.invenio.cfg ${VIRTUAL_ENV}/var/invenio.base-instance/invenio.cfg"
 
 install:
-  - "travis_retry pip install unittest2"
-  - "travis_retry pip install -r .travis-$REQUIREMENTS-requirements.txt --allow-all-external --quiet"
-  - "travis_retry pip install -e .[$REXTRAS] --quiet --process-dependency-links"
+  - "travis_retry pip install -r .travis-$REQUIREMENTS-requirements.txt --allow-all-external"
+  - "travis_retry pip install -e .[$REXTRAS]"
 
 before_script:
-  - "inveniomanage database init --yes-i-know || echo ':('"
-  - "inveniomanage database create --quiet || echo ':('"
+  - "inveniomanage database init --yes-i-know"
+  - "inveniomanage database create --quiet"
 
 script:
-  - "sphinx-build -qnN docs docs/_build/html"
+  - "check-manifest --ignore .travis-\\*-requirements.txt"
+  # FIXME(jacquerie): update to latest cookiecutter boilerplate.
+  # - "sphinx-build -qnN docs docs/_build/html"
   - "python setup.py test"
 
 after_success:

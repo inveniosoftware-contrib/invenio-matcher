@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # This file is part of Invenio.
 # Copyright (C) 2015 CERN.
 #
@@ -22,20 +20,19 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Matcher errors."""
+"""Matcher models."""
 
 
-class NoEngineDefined(KeyError):
-    pass
+class MatchResult(object):
 
+    """Matcher - represent a result."""
 
-class NoQueryDefined(KeyError):
-    pass
+    def __init__(self, record, score):
+        self.record = record
+        self.score = score
 
+    def __eq__(self, other):
+        """Two results are equal if they are the same record.
 
-class InvalidQuery(TypeError):
-    pass
-
-
-class NotImplementedQuery(NotImplementedError):
-    pass
+        The score is an implementation detail, what matters is the record."""
+        return self.record == other.record

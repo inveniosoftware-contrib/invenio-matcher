@@ -26,4 +26,6 @@ Authors
 
 Invenio module to detect duplicates on submit.
 
-- CERN <info@invenio-software.org>
+- Jacopo Notarstefano <jacopo.notarstefano@cern.ch>
+
+Special thanks to Jan Aage Lavik (@jalavik) for reviews and comments.

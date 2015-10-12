@@ -36,15 +36,18 @@ history = open('CHANGES.rst').read()
 requirements = [
     'Flask>=0.10.1',
     'six>=1.7.2',
-    'Invenio>=2.0.3',
+    'invenio-base>=0.3.1,<1.0.0',
+    'invenio-ext>=0.3.2,<1.0.0',
+    'invenio-records>=0.3.4,<1.0.0',
 ]
 
 test_requirements = [
     'Flask-Testing>=0.4.2',
-    'pytest>=2.7.0',
-    'pytest-cov>=1.8.0',
+    'pytest>=2.8.0',
+    'pytest-cov>=2.2.0',
     'pytest-pep8>=1.0.6',
-    'coverage>=3.7.1',
+    'coverage>=4.0.0',
+    'invenio-testing>=0.1.1,<1.0.0',
 ]
 
 
@@ -75,9 +78,6 @@ class PyTest(TestCommand):
         """Run tests."""
         # import here, cause outside the eggs aren't loaded
         import pytest
-        import _pytest.config
-        pm = _pytest.config.get_plugin_manager()
-        pm.consider_setuptools_entrypoints()
         errno = pytest.main(self.pytest_args)
         sys.exit(errno)
 
@@ -88,14 +88,14 @@ with open(os.path.join('invenio_matcher', 'version.py'), 'rt') as fp:
     version = g['__version__']
 
 setup(
-    name='Invenio Matcher',
+    name='invenio-matcher',
     version=version,
     description=__doc__,
     long_description=readme + '\n\n' + history,
-    keywords='invenio TODO',
+    keywords='invenio',
     license='GPLv2',
     author='CERN',
-    author_email='info@invenio-software.org',
+    author_email='feedback@inspirehep.net',
     url='https://github.com/inveniosoftware/invenio-matcher',
     packages=[
         'invenio_matcher',

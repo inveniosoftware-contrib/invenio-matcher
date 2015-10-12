@@ -22,20 +22,19 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Matcher errors."""
+"""Matcher registry."""
+
+from flask_registry import ModuleAutoDiscoveryRegistry, RegistryProxy
+
+from invenio_ext.registry import DictModuleAutoDiscoverySubRegistry
 
 
-class NoEngineDefined(KeyError):
-    pass
+matcherext = RegistryProxy('matcherext', ModuleAutoDiscoveryRegistry,
+                           'matcherext')
 
-
-class NoQueryDefined(KeyError):
-    pass
-
-
-class InvalidQuery(TypeError):
-    pass
-
-
-class NotImplementedQuery(NotImplementedError):
-    pass
+engines = RegistryProxy(
+    'matcherext.engines', DictModuleAutoDiscoverySubRegistry, 'engines',
+    keygetter=lambda key, value, new_value: value.__name__.split('.')[-1],
+    valuegetter=lambda value: value,
+    registry_namespace=matcherext,
+)

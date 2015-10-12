@@ -24,78 +24,55 @@
 
 """Matcher core."""
 
-from invenio.ext.es import es
+import copy
 
-from .errors import InvalidQuery
-from .utils import build_exact_query, build_fuzzy_query
+import six
+
+from .engine import exact, free, fuzzy, queries
+from .errors import InvalidQuery, NotImplementedQuery
 
 
-def exact(mapping, index, doc_type):
-    es_query = build_exact_query(mapping, index, doc_type)
-    result = es.search(body=es_query, index=index, doc_type=doc_type)
+def execute(query, record, **kwargs):
+    """Parse a query and send it to the engine."""
+    _type, match, values, extras = _parse(query, record)
+    _kwargs = _merge(kwargs, extras)
 
-    if result['hits']['total'] == 0:
-        return None
+    if _type == 'exact':
+        return exact(match=match, values=values, **_kwargs)
+    elif _type == 'fuzzy':
+        return fuzzy(match=match, values=values, **_kwargs)
+    elif _type == 'free':
+        return free(match=match, values=values, **_kwargs)
     else:
-        return result['hits']['hits']
+        raise NotImplementedQuery('Query of type {_type} is not currently'
+                                  ' implemented.'.format(_type=_type))
 
 
-def fuzzy(mapping, index, doc_type):
-    es_query = build_fuzzy_query(mapping, index, doc_type)
-    result = es.search(body=es_query, index=index, doc_type=doc_type)
-
-    if result['hits']['total'] == 0:
-        return None
-    else:
-        return result['hits']['hits']
-
-# http://stackoverflow.com/a/10824420/374865
-def flatten(container):
-    for i in container:
-        if isinstance(i, list) or isinstance(i, tuple):
-            for j in flatten(i):
-                yield j
-        else:
-            yield i
+def get_queries(**kwargs):
+    """Get defined queries from the engine."""
+    return queries(**kwargs)
 
 
-def walk(parts, record):
-    if isinstance(record, list):
-        return [walk(parts, el) for el in record]
-    else:
-        if len(parts) == 1:
-            return record[parts[0]]
-        else:
-            return walk(parts[1:], record[parts[0]])
+def _merge(d1, d2):
+    """Merge two dictionaries."""
+    result = copy.deepcopy(d1)
+    result.update(d2)
+
+    return result
 
 
-def get_values(path, record):
-    return list(flatten(walk(path.split('.'), record)))
-
-
-def parse(query, record):
+def _parse(query, record):
+    """Parse a query and extract values from record."""
     try:
-        type_ = query['type']
-
-        if query.get('with', None):
-            key = query['with']
-        else:
-            key = query['match']
-
-        values = get_values(query['match'], record)
-        mapping = {key: values}
-
-        return type_, mapping
+        _type = query['type']
+        match = query['match']
     except KeyError:
-        raise InvalidQuery('TODO')
+        raise InvalidQuery('Keys "type" and "match" not defined in query'
+                           ' {query}'.format(query=query))
 
+    values = record[match]
+    match = query.get('with', match)
+    extras = {k: v for k, v in six.iteritems(
+        query) if k not in set(['type', 'match', 'with'])}
 
-def execute(query, record, index, doc_type):
-    type_, mapping = parse(query, record)
-
-    if type_ == 'exact':
-        return exact(mapping, index, doc_type)
-    elif type_ == 'fuzzy':
-        return fuzzy(mapping, index, doc_type)
-    else:
-        raise NotImplementedError
+    return _type, match, values, extras

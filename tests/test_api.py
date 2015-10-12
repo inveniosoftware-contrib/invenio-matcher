@@ -24,14 +24,75 @@
 
 """Test Matcher API."""
 
-from invenio.testsuite import InvenioTestCase
+from helpers import (
+    no_queries, no_results, simple_data, single_query, single_result
+)
+
+from invenio_base.wrappers import lazy_import
 
 from invenio_matcher.api import match
+from invenio_matcher.errors import NoQueryDefined
+from invenio_matcher.models import MatchResult
+
+from invenio_testing import InvenioTestCase
+
+import mock
+
+import pytest
+
+
+Record = lazy_import('invenio_records.api.Record')
 
 
 class TestMatcherAPI(InvenioTestCase):
-    
-    """Matcher - TODO."""
 
-    def test_match(self):
-        pass
+    """Matcher: test API."""
+
+    def setup_class(self):
+        """Load data for a simple record."""
+        self.data = simple_data()
+
+    @mock.patch('invenio_matcher.api.get_queries', no_queries)
+    def test_match_no_queries(self):
+        """Raise when no query are defined."""
+        record = Record(self.data)
+
+        with pytest.raises(NoQueryDefined) as excinfo:
+            list(match(record))
+        self.assertIn('passed or defined', str(excinfo.value))
+
+    @mock.patch('invenio_matcher.api.get_queries', single_query)
+    @mock.patch('invenio_matcher.api.execute', no_results)
+    def test_match_with_configured_queries(self):
+        """Search using configured queries."""
+        record = Record(self.data)
+
+        expected = []
+        result = list(match(record))
+
+        self.assertEqual(expected, result)
+
+    @mock.patch('invenio_matcher.api.execute', single_result)
+    def test_match_with_passed_queries(self):
+        """Search using queries passed as an argument."""
+        record = Record(self.data)
+        queries = [{'type': 'exact', 'match': 'titles.title'}]
+
+        expected = [MatchResult(record, 1)]
+        result = list(match(record, queries=queries))
+
+        self.assertEqual(expected, result)
+
+    @mock.patch('invenio_matcher.api.execute', single_result)
+    def test_match_with_validator(self):
+        """Validate results with a validator function."""
+        record = Record(self.data)
+        queries = [{'type': 'exact', 'match': 'titles.title'}]
+
+        def validator(record, result):
+            return record['titles'][0]['title'] == 'bar foo'
+
+        expected = []
+        result = list(match(record, queries=queries, validator=validator))
+
+        self.assertEqual(expected, result)
