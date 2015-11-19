@@ -34,9 +34,14 @@ from invenio_matcher.models import MatchResult
 Record = lazy_import('invenio_records.api.Record')
 
 
+def data():
+    """Represent a record."""
+    return {'titles': [{'title': 'foo bar'}]}
+
+
 def simple_data():
     """Represent a simple record."""
-    return {'titles': [{'title': 'foo bar'}]}
+    return {'title': 'foo bar'}
 
 
 def no_results(query, record, **kwargs):
@@ -46,7 +51,7 @@ def no_results(query, record, **kwargs):
 
 def single_result(query, record, **kwargs):
     """Return a single result."""
-    return [MatchResult(Record(simple_data()), 1)]
+    return [MatchResult(Record(data()), 1)]
 
 
 def no_queries(**kwargs):

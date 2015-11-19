@@ -81,6 +81,9 @@ def queries(index, doc_type, **kwargs):
 
 def _build_exact_query(match, values, **kwargs):
     """Build an exact query."""
+    if values == []:
+        return {}
+
     result = {
         'query': {
             'filtered': {

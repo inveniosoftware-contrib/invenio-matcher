@@ -61,6 +61,19 @@ def _merge(d1, d2):
     return result
 
 
+def _get_values(record, match):
+    """Retrieve the values from the record.
+
+    Ensures that the values will be a list, since this is what the
+    rest of the code expects.
+    """
+    result = record.get(match, [])
+    if not isinstance(result, list):
+        result = [result]
+
+    return result
+
+
 def _parse(query, record):
     """Parse a query and extract values from record."""
     try:
@@ -70,9 +83,12 @@ def _parse(query, record):
         raise InvalidQuery('Keys "type" and "match" not defined in query'
                            ' {query}'.format(query=query))
 
-    values = record[match]
+    # XXX(jacquerie): This allows the user to pass directly the values to be
+    # retrieved from the record. This is an advanced feature, therefore is
+    # not advertised in the public API.
+    values = query.get('values', _get_values(record, match))
     match = query.get('with', match)
     extras = {k: v for k, v in six.iteritems(
-        query) if k not in set(['type', 'match', 'with'])}
+        query) if k not in set(['type', 'match', 'with', 'values'])}
 
     return _type, match, values, extras

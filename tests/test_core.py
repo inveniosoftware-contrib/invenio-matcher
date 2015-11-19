@@ -24,7 +24,7 @@
 
 """Test Matcher core."""
 
-from helpers import simple_data, single_query
+from helpers import data, simple_data, single_query
 
 from invenio_base.wrappers import lazy_import
 
@@ -46,7 +46,8 @@ class TestMatcherCore(InvenioTestCase):
     """Matcher: test core."""
 
     def setup_class(self):
-        self.data = simple_data()
+        self.data = data()
+        self.simple_data = simple_data()
 
     @mock.patch('invenio_matcher.core.exact')
     def test_execute_exact(self, exact):
@@ -131,6 +132,18 @@ class TestMatcherCore(InvenioTestCase):
         self.assertEqual(values, ['foo bar'])
         self.assertEqual(extras, {'foo': 'bar'})
 
+    def test_parse_query_can_override_values(self):
+        """Parse a query overriding the extracted values."""
+        query = {'type': 'exact', 'match': 'titles.title', 'values': ['qux quux']}
+        record = Record(self.data)
+
+        _type, match, values, extras = _parse(query, record)
+
+        self.assertEqual(_type, 'exact')
+        self.assertEqual(match, 'titles.title')
+        self.assertEqual(values, ['qux quux'])
+        self.assertEqual(extras, {})
+
     def test_parse_invalid_query(self):
         """Raise for malformed queries."""
         query = {'type': 'exact'}
@@ -139,6 +152,38 @@ class TestMatcherCore(InvenioTestCase):
         with pytest.raises(InvalidQuery) as excinfo:
             _type, match, values, extras = _parse(query, record)
         self.assertIn('not defined in query', str(excinfo.value))
+
+    def test_parse_query_with_invalid_path(self):
+        """Parse a query on a record with invalid_path.
+
+        We want to make sure that, even when we give an invalid path
+        to the Record API we get back an empty list.
+        """
+        query = {'type': 'exact', 'match': 'titles.title'}
+        record = Record(self.simple_data)
+
+        _type, match, values, extras = _parse(query, record)
+
+        self.assertEqual(_type, 'exact')
+        self.assertEqual(match, 'titles.title')
+        self.assertEqual(values, [])
+        self.assertEqual(extras, {})
+
+    def test_parse_query_without_lists(self):
+        """Parse a query on a record without lists.
+
+        We want to make sure that, even when the Record API does not
+        return a list, we are getting a list for the 'values' variable.
+        """
+        query = {'type': 'exact', 'match': 'title'}
+        record = Record(self.simple_data)
+
+        _type, match, values, extras = _parse(query, record)
+
+        self.assertEqual(_type, 'exact')
+        self.assertEqual(match, 'title')
+        self.assertEqual(values, ['foo bar'])
+        self.assertEqual(extras, {})
 
     def test_merge(self):
         """Merge two dictionaries."""
