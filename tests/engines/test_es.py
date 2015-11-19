@@ -174,6 +174,13 @@ class TestMatcherEngineES(InvenioTestCase):
 
         self.assertEqual(expected, result)
 
+    def test_build_exact_query_empty(self):
+        """Build an exact query from an empty list of values."""
+        expected = {}
+        result = _build_exact_query(match='titles.title', values=[])
+
+        self.assertEqual(expected, result)
+
     def test_build_exact_query_invalid_call(self):
         """Raise when the call is invalid."""
         with pytest.raises(TypeError) as excinfo:
