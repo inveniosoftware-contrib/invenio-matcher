@@ -25,7 +25,7 @@
 """Test Matcher API."""
 
 from helpers import (
-    no_queries, no_results, simple_data, single_query, single_result
+    data, no_queries, no_results, single_query, single_result
 )
 
 from invenio_base.wrappers import lazy_import
@@ -50,7 +50,7 @@ class TestMatcherAPI(InvenioTestCase):
 
     def setup_class(self):
         """Load data for a simple record."""
-        self.data = simple_data()
+        self.data = data()
 
     @mock.patch('invenio_matcher.api.get_queries', no_queries)
     def test_match_no_queries(self):
