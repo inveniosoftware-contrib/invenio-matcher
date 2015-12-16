@@ -33,8 +33,13 @@ from .errors import InvalidQuery, NotImplementedQuery
 
 
 def execute(query, record, **kwargs):
-    """Parse a query and send it to the engine."""
+    """Parse a query and send it to the engine, returning a list of hits."""
     _type, match, values, extras = _parse(query, record)
+
+    if not values:
+        # No values in the record to match with
+        return []
+
     _kwargs = _merge(kwargs, extras)
 
     if _type == 'exact':
