@@ -88,6 +88,17 @@ class TestMatcherCore(InvenioTestCase):
             execute(query, record)
         self.assertIn('type foobar', str(excinfo.value))
 
+    @mock.patch('invenio_matcher.core.exact')
+    def test_execute_no_values(self, exact):
+        """In case the record does not contain the match value."""
+        query = {'type': 'exact', 'match': 'titles.title'}
+        record = Record({})
+
+        res = execute(query, record)
+
+        assert not exact.called, 'exact function should not have been called'
+        assert res == []
+
     @mock.patch('invenio_matcher.core.queries', single_query)
     def test_get_queries(self):
         """Dispatch the retrieval of queries."""
