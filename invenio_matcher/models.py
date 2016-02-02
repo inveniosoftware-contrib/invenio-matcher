@@ -27,7 +27,8 @@ class MatchResult(object):
 
     """Matcher - represent a result."""
 
-    def __init__(self, record, score):
+    def __init__(self, id_, record, score):
+        self.id = id_
         self.record = record
         self.score = score
 

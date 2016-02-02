@@ -49,9 +49,15 @@ def no_results(query, record, **kwargs):
     return []
 
 
+def duplicated_result(query, record, **kwargs):
+    """Represent a simple record."""
+    return single_result(query, record, **kwargs) + \
+        single_result(query, record, **kwargs)
+
+
 def single_result(query, record, **kwargs):
     """Return a single result."""
-    return [MatchResult(Record(data()), 1)]
+    return [MatchResult(1, Record(data()), 1)]
 
 
 def no_queries(**kwargs):
