@@ -1,6 +1,6 @@
 ..
     This file is part of Invenio.
-    Copyright (C) 2015 CERN.
+    Copyright (C) 2015, 2016 CERN.
 
     Invenio is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License as
@@ -24,8 +24,5 @@
 Authors
 =======
 
-Invenio module to detect duplicates on submit.
-
 - Jacopo Notarstefano <jacopo.notarstefano@cern.ch>
-
-Special thanks to Jan Aage Lavik (@jalavik) for reviews and comments.
+- Jan Aage Lavik <jan.age.lavik@cern.ch>

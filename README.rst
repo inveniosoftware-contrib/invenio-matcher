@@ -1,6 +1,6 @@
 ..
     This file is part of Invenio.
-    Copyright (C) 2015 CERN.
+    Copyright (C) 2015, 2016 CERN.
 
     Invenio is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License as
@@ -25,29 +25,23 @@
 Invenio Matcher
 ======================================
 
-.. image:: https://img.shields.io/travis/inveniosoftware/invenio-matcher.svg
-        :target: https://travis-ci.org/inveniosoftware/invenio-matcher
+.. image:: https://img.shields.io/travis/inspirehep/invenio-matcher.svg
+        :target: https://travis-ci.org/inspirehep/invenio-matcher
 
-.. image:: https://img.shields.io/coveralls/inveniosoftware/invenio-matcher.svg
-        :target: https://coveralls.io/r/inveniosoftware/invenio-matcher
+.. image:: https://img.shields.io/coveralls/inspirehep/invenio-matcher.svg
+        :target: https://coveralls.io/r/inspirehep/invenio-matcher
 
-.. image:: https://img.shields.io/github/tag/inveniosoftware/invenio-matcher.svg
-        :target: https://github.com/inveniosoftware/invenio-matcher/releases
+.. image:: https://img.shields.io/github/tag/inspirehep/invenio-matcher.svg
+        :target: https://github.com/inspirehep/invenio-matcher/releases
 
 .. image:: https://img.shields.io/pypi/dm/invenio-matcher.svg
         :target: https://pypi.python.org/pypi/invenio-matcher
 
-.. image:: https://img.shields.io/github/license/inveniosoftware/invenio-matcher.svg
+.. image:: https://img.shields.io/github/license/inspirehep/invenio-matcher.svg
         :target: https://github.com/inveniosoftware/invenio-matcher/blob/master/LICENSE
 
 
-Invenio module to detect duplicates on submit.
+Invenio module to match JSON records against the record database.
 
 * Free software: GPLv2 license
-* Documentation: https://invenio-matcher.readthedocs.org.
-
-Features
-========
-
-- TODO
-- TODO
+* Documentation: https://pythonhosted.org/invenio-matcher/

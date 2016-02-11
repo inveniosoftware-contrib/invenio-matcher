@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# This file is part of Invenio Matcher
-# Copyright (C) 2015 CERN
+# This file is part of Invenio
+# Copyright (C) 2015, 2016 CERN
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -38,27 +38,25 @@ cache:
   - pip
 
 env:
-  - REQUIREMENTS=lowest REXTRAS=docs,test
-  - REQUIREMENTS=release REXTRAS=docs,test
-  - REQUIREMENTS=devel REXTRAS=docs,test
+  - REQUIREMENTS=lowest EXTRAS=docs,test
+  - REQUIREMENTS=release EXTRAS=docs,test
+  - REQUIREMENTS=devel EXTRAS=docs,test
 
 python:
   - "2.7"
 
 before_install:
-  - "travis_retry pip install --upgrade pip"
-  - "travis_retry pip install --upgrade pytest"
-  - "travis_retry pip install --upgrade mock"
-  - "travis_retry pip install check-manifest mock twine wheel coveralls"
-  - "python requirements.py --extras=$REXTRAS --level=min > .travis-lowest-requirements.txt"
-  - "python requirements.py --extras=$REXTRAS --level=pypi > .travis-release-requirements.txt"
-  - "python requirements.py --extras=$REXTRAS --level=dev > .travis-devel-requirements.txt"
+  - "travis_retry pip install --upgrade pip setuptools py"
+  - "travis_retry pip install check-manifest twine wheel mock coveralls requirements-builder"
+  - "requirements-builder -e all --level=min setup.py > .travis-lowest-requirements.txt"
+  - "requirements-builder -e all --level=pypi setup.py > .travis-release-requirements.txt"
+  - "requirements-builder -e all --level=dev --req requirements-devel.txt setup.py > .travis-devel-requirements.txt"
   - "mkdir -p ${VIRTUAL_ENV}/var/invenio.base-instance/"
   - "cp .travis.invenio.cfg ${VIRTUAL_ENV}/var/invenio.base-instance/invenio.cfg"
 
 install:
-  - "travis_retry pip install -r .travis-$REQUIREMENTS-requirements.txt --allow-all-external"
-  - "travis_retry pip install -e .[$REXTRAS]"
+  - "travis_retry pip install -r .travis-${REQUIREMENTS}-requirements.txt"
+  - "travis_retry pip install -e .[${EXTRAS}]"
 
 before_script:
   - "inveniomanage database init --yes-i-know"
@@ -66,9 +64,19 @@ before_script:
 
 script:
   - "check-manifest --ignore .travis-\\*-requirements.txt"
-  # FIXME(jacquerie): update to latest cookiecutter boilerplate.
-  # - "sphinx-build -qnN docs docs/_build/html"
+  - "sphinx-build -qnN docs docs/_build/html"
   - "python setup.py test"
 
 after_success:
   - coveralls
+
+deploy:
+  provider: pypi
+  user: inspirehep
+  password:
+    secure: gAzH1d/QKVigcTnyOZnqevGQb9YTNkbap9soFL3GVF84zhRTItCLMiSWngx+69YT/pHjkL/PDqgxj9Y+ix7JAypjNKnAk/u4tUwmogGFwdXEG4leuQqgUdVP00RWmji50GyqYg6ouhBpxblv9ypI0+sZz4BJ0MccWzU1MoGtU42n1N4l7EpwYMLA6EUtFrfMEuBSJN/5XRofz+5PRdNMmW/n6tVG9nLXUUVu0uYmkZrKIiO+GIDXxg+pUamUCpZf2nO1KA2q0B1OkkiSpEaRBRqLZGnvVb6byV/N3DHLims5M2ewuvx51YAFFBPdOwyojhPOXtMfQW3Zub1SmoQOcDfRZHWfPI4V6DmHW11M5yBGwXXjQXGP+FQamVKt9g6Gae7eJDtb5wyf2FJKOsIU1MjicehQ9Sc4iC2LbePpGxptmOmBzc/7TRZncaJBtr/xMcnZJCLkuidfKIVtH/i3TuNL3q63ZA7Ny5ZFMu/7D76nGXBSM9EaOaO36/HHC6vVPdi17NJ9zBMbcsW0+nO3LNmOFcyaxisURiBHDwdMXF+lUMg/QFb+R+HTTh4Dbkue8u2QkLRrf7DSQRNagOVfgSlDMbgXsJ2hSzrpVUWMqzN/BEskAxpWfJ8xswhH2m113eKr/LK05E7B3PkZv5tRes4cVZTkpac3kPT4JcpGOHw=
+  on:
+    tags: true
+    repo: inspirehep/invenio-matcher
+    branch: master
+    distributions: sdist bdist_wheel
