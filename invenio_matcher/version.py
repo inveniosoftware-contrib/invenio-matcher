@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015 CERN.
+# Copyright (C) 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -28,4 +28,4 @@ This file is imported by ``invenio_matcher.__init__``,
 and parsed by ``setup.py``.
 """
 
-__version__ = "0.1.0.dev20150000"
+__version__ = "0.1.0"
