@@ -44,27 +44,21 @@ def exact(index, doc_type, match, values, **kwargs):
     """Build an exact query and send it to Elasticsearch."""
     exact_query = _build_exact_query(match, values, **kwargs)
     result = ES.search(index=index, doc_type=doc_type, body=exact_query)
-    hits = result['hits']['hits']
-
-    return [MatchResult(Record(hit['_source']), hit['_score']) for hit in hits]
+    return _build_result(result['hits']['hits'])
 
 
 def fuzzy(index, doc_type, match, values, **kwargs):
     """Build a fuzzy query and send it to Elasticsearch."""
     fuzzy_query = _build_fuzzy_query(index, doc_type, match, values, **kwargs)
     result = ES.search(index=index, doc_type=doc_type, body=fuzzy_query)
-    hits = result['hits']['hits']
-
-    return [MatchResult(Record(hit['_source']), hit['_score']) for hit in hits]
+    return _build_result(result['hits']['hits'])
 
 
 def free(index, doc_type, query, **kwargs):
     """Build a free query and send it to Elasticsearch."""
     free_query = _build_free_query(query, **kwargs)
     result = ES.search(index=index, doc_type=doc_type, body=free_query)
-    hits = result['hits']['hits']
-
-    return [MatchResult(Record(hit['_source']), hit['_score']) for hit in hits]
+    return _build_result(result['hits']['hits'])
 
 
 def queries(index, doc_type, **kwargs):
@@ -110,6 +104,14 @@ def _build_exact_query(match, values, **kwargs):
         result['query']['filtered']['filter']['or'].append(subquery)
 
     return result
+
+
+def _build_result(hits):
+    return [MatchResult(
+        hit['_id'],
+        Record(hit['_source']),
+        hit['_score']) for hit in hits
+    ]
 
 
 def _build_fuzzy_query(index, doc_type, match, values, **kwargs):

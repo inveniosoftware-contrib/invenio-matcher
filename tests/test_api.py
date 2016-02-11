@@ -25,7 +25,9 @@
 """Test Matcher API."""
 
 from helpers import (
-    data, no_queries, no_results, single_query, single_result
+    data, no_queries, no_results,
+    single_query, single_result,
+    duplicated_result
 )
 
 from invenio_base.wrappers import lazy_import
@@ -78,8 +80,25 @@ class TestMatcherAPI(InvenioTestCase):
         record = Record(self.data)
         queries = [{'type': 'exact', 'match': 'titles.title'}]
 
-        expected = [MatchResult(record, 1)]
+        expected = [MatchResult(1, record, 1)]
         result = list(match(record, queries=queries))
+
+        self.assertEqual(expected, result)
+
+    @mock.patch('invenio_matcher.api.execute', duplicated_result)
+    def test_default_deduplication_validator(self):
+        """Make sure default deduplication validator works."""
+        record = Record(self.data)
+        queries = [{'type': 'exact', 'match': 'titles.title'}]
+
+        expected = [MatchResult(1, record, 1)]
+        result = list(match(record, queries=queries, validator=None))
+
+        self.assertEqual(expected, result)
+
+        # Test the same again to see if validator resets
+        expected = [MatchResult(1, record, 1)]
+        result = list(match(record, queries=queries, validator=None))
 
         self.assertEqual(expected, result)
 

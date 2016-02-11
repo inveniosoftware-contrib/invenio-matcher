@@ -52,6 +52,9 @@ def match(record, queries=None, validator=None, **kwargs):
     ```
     which wraps the previous keyword arguments. If they do this, they will have
     encapsulated the logic that assumes a particular engine in a single method.
+
+    You can pass your own validator which is called for every result. The
+    default validator filters our existing matches to avoid duplicates.
     """
     if not queries:
         queries = get_queries(**kwargs)
@@ -61,8 +64,12 @@ def match(record, queries=None, validator=None, **kwargs):
                                  ' MATCHER_QUERIES.')
 
     if not validator:
-        def validator(record, result):
-            return True
+        def validator(record, result, existing_matches={}):
+            """Simple deduplication validator."""
+            if result.id not in existing_matches:
+                existing_matches[result.id] = True
+                return True
+            return False
 
     for query in queries:
         results = execute(query, record, **kwargs)

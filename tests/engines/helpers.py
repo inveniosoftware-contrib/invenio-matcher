@@ -64,7 +64,8 @@ def es_single_result(**kwargs):
             'hits': [
                 {
                     '_source': {'titles': [{'title': 'foo bar'}]},
-                    '_score': 1.0
+                    '_score': 1.0,
+                    '_id': 1
                 }
             ]
         }
@@ -78,7 +79,7 @@ def simple_data():
 
 def single_result(**kwargs):
     """Return a single result."""
-    return [MatchResult(Record(simple_data()), 1)]
+    return [MatchResult(1, Record(simple_data()), 1)]
 
 
 def build_free_query(query, **kwargs):
