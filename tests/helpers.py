@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015 CERN.
+# Copyright (C) 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -24,24 +24,33 @@
 
 """Matcher test helpers."""
 
-import imp
-
-from invenio_base.wrappers import lazy_import
+from __future__ import absolute_import, print_function
 
 from invenio_matcher.models import MatchResult
 
 
-Record = lazy_import('invenio_records.api.Record')
+def empty_search_result(*args, **kwargs):
+    """Return no results."""
+    return {
+        'hits': {'hits': [], 'total': 0, 'max_score': None},
+    }
 
 
-def data():
-    """Represent a record."""
-    return {'titles': [{'title': 'foo bar'}]}
-
-
-def simple_data():
-    """Represent a simple record."""
-    return {'title': 'foo bar'}
+def one_search_result(*args, **kwargs):
+    """Return a single result from Elasticsearch."""
+    return {
+        'hits': {
+            'total': 1,
+            'max_score': 1.0,
+            'hits': [
+                {
+                    '_source': {'title': 'foo bar'},
+                    '_score': 1.0,
+                    '_id': 1
+                }
+            ]
+        }
+    }
 
 
 def no_results(query, record, **kwargs):
@@ -49,7 +58,7 @@ def no_results(query, record, **kwargs):
     return []
 
 
-def duplicated_result(query, record, **kwargs):
+def duplicated_result(index, doc_type, query, record, **kwargs):
     """Represent a simple record."""
     return single_result(query, record, **kwargs) + \
         single_result(query, record, **kwargs)
@@ -57,7 +66,8 @@ def duplicated_result(query, record, **kwargs):
 
 def single_result(query, record, **kwargs):
     """Return a single result."""
-    return [MatchResult(1, Record(data()), 1)]
+    from invenio_records import Record
+    return [MatchResult(1, Record(record), 1)]
 
 
 def no_queries(**kwargs):
@@ -68,37 +78,3 @@ def no_queries(**kwargs):
 def single_query(**kwargs):
     """Return a single query."""
     return [{'type': 'exact', 'match': 'titles.title'}]
-
-
-no_engine_config = {}
-
-
-single_engine_config = {'MATCHER_ENGINE': 'foo'}
-
-
-single_engine_engines = {'foo': 'bar'}
-
-
-def get_engine():
-    """Mock an engine module.
-
-    Yes, you can do this. See http://stackoverflow.com/a/3799609/374865
-    for more details, and laugh maniacally with me.
-    """
-    engine = imp.new_module('engine')
-    engine_code = '''
-def exact(**kwargs):
-    return 'exact'
-
-def fuzzy(**kwargs):
-    return 'fuzzy'
-
-def free(**kwargs):
-    return 'free'
-
-def queries(**kwargs):
-    return 'queries'
-    '''
-    exec engine_code in engine.__dict__
-
-    return engine

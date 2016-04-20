@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015 CERN.
+# Copyright (C) 2016 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -22,19 +22,29 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Matcher registry."""
+"""Invenio module to match JSON records against the record database."""
 
-from flask_registry import ModuleAutoDiscoveryRegistry, RegistryProxy
+from __future__ import absolute_import, print_function
 
-from invenio_ext.registry import DictModuleAutoDiscoverySubRegistry
+from . import config
 
 
-matcherext = RegistryProxy('matcherext', ModuleAutoDiscoveryRegistry,
-                           'matcherext')
+class InvenioMatcher(object):
+    """Invenio-Matcher extension."""
 
-engines = RegistryProxy(
-    'matcherext.engines', DictModuleAutoDiscoverySubRegistry, 'engines',
-    keygetter=lambda key, value, new_value: value.__name__.split('.')[-1],
-    valuegetter=lambda value: value,
-    registry_namespace=matcherext,
-)
+    def __init__(self, app=None):
+        """Extension initialization."""
+        if app:
+            self.init_app(app)
+
+    def init_app(self, app):
+        """Flask application initialization."""
+        self.init_config(app)
+        app.extensions['invenio-matcher'] = self
+
+    @staticmethod
+    def init_config(app):
+        """Initialize configuration."""
+        for k in dir(config):
+            if k.startswith('MATCHER_'):
+                app.config.setdefault(k, getattr(config, k))

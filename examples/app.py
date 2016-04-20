@@ -22,5 +22,23 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-[pytest]
-addopts = --pep8 --ignore=docs --cov=invenio_matcher --cov-report=term-missing
+
+"""Minimal Flask application example for development.
+
+Run example development server:
+
+.. code-block:: console
+
+   $ cd examples
+   $ flask -a app.py --debug run
+"""
+
+from __future__ import absolute_import, print_function
+
+from flask import Flask
+
+from invenio_matcher import InvenioMatcher
+
+# Create Flask application
+app = Flask(__name__)
+InvenioMatcher(app)

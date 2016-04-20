@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015 CERN.
+# Copyright (C) 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -25,43 +25,43 @@
 """Matcher API."""
 
 from .core import execute, get_queries
-
 from .errors import NoQueryDefined
 
 
-def match(record, queries=None, validator=None, **kwargs):
-    """Find duplicates of the given record.
+def match(record, index, doc_type, queries=None, validator=None, **kwargs):
+    """Find duplicates of the given record and yield results.
 
     This function is a generator, which returns one result at a time.
     The result is of class `MatchResult`, which is an abstract representation
     of a result returned by an engine.
 
-    The API is agnostic of implementation-required parameters, such as
-    the `index` and the `doc_type` for Elasticsearch. The idea is to pass
-    them as keyword arguments: the implementation then passes them down to
-    the actual implementation in the engine.
+    The API requires `index` and the `doc_type` for the Invenio-Search
+    integration.
 
     NOTE: Callers might find tedious that they have to write boilerplate like
     ```
-    match(r, index='records', doc_type='record')
+    match(r, index, doc_type)
     ```
     every single time; the idea is to encourage them to define a method in the
     client code with signature
     ```
     match_record(r)
     ```
-    which wraps the previous keyword arguments. If they do this, they will have
-    encapsulated the logic that assumes a particular engine in a single method.
+    which wraps the previous keyword arguments.
 
     You can pass your own validator which is called for every result. The
-    default validator filters our existing matches to avoid duplicates.
+    default validator filters our existing matches to avoid returning the
+    same record several times.
+
+    :return: generator over MatchResult instances.
     """
     if not queries:
-        queries = get_queries(**kwargs)
+        queries = get_queries(index, doc_type, **kwargs)
 
         if not queries:
-            raise NoQueryDefined('No query passed or defined in '
-                                 ' MATCHER_QUERIES.')
+            raise NoQueryDefined(
+                'No query passed or defined in MATCHER_QUERIES.'
+            )
 
     if not validator:
         def validator(record, result, existing_matches={}):
@@ -72,7 +72,7 @@ def match(record, queries=None, validator=None, **kwargs):
             return False
 
     for query in queries:
-        results = execute(query, record, **kwargs)
+        results = execute(index, doc_type, query, record, **kwargs)
 
         if results:
             for result in results:

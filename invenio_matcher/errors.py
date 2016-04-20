@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015 CERN.
+# Copyright (C) 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -25,17 +25,17 @@
 """Matcher errors."""
 
 
-class NoEngineDefined(KeyError):
-    pass
+class MatcherError(Exception):
+    """Base error class for Invenio-Matcher."""
 
 
-class NoQueryDefined(KeyError):
-    pass
+class NoQueryDefined(MatcherError):
+    """No queries was defined."""
 
 
-class InvalidQuery(TypeError):
-    pass
+class InvalidQuery(MatcherError):
+    """Query is invalid."""
 
 
-class NotImplementedQuery(NotImplementedError):
-    pass
+class NotImplementedQuery(MatcherError):
+    """Query type is not implemented."""

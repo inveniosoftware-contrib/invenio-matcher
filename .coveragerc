@@ -1,5 +1,0 @@
-[run]
-omit =
-    invenio_matcher/config.py
-    invenio_matcher/registry.py
-    invenio_matcher/version.py

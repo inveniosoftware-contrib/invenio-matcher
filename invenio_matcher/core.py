@@ -27,12 +27,15 @@
 import copy
 
 import six
+from flask import current_app
+from invenio_records import Record
 
-from .engine import exact, free, fuzzy, queries
-from .errors import InvalidQuery, NotImplementedQuery
+from .engine import exact, free, fuzzy
+from .errors import InvalidQuery, NoQueryDefined, NotImplementedQuery
+from .models import MatchResult
 
 
-def execute(query, record, **kwargs):
+def execute(index, doc_type, query, record, **kwargs):
     """Parse a query and send it to the engine, returning a list of hits."""
     _type, match, values, extras = _parse(query, record)
 
@@ -43,19 +46,34 @@ def execute(query, record, **kwargs):
     _kwargs = _merge(kwargs, extras)
 
     if _type == 'exact':
-        return exact(match=match, values=values, **_kwargs)
+        result = exact(index, doc_type, match=match, values=values, **_kwargs)
     elif _type == 'fuzzy':
-        return fuzzy(match=match, values=values, **_kwargs)
+        result = fuzzy(index, doc_type, match=match, values=values, **_kwargs)
     elif _type == 'free':
-        return free(match=match, values=values, **_kwargs)
+        result = free(index, doc_type, query, **_kwargs)
     else:
         raise NotImplementedQuery('Query of type {_type} is not currently'
                                   ' implemented.'.format(_type=_type))
+    return _build_result(result['hits']['hits'])
 
 
-def get_queries(**kwargs):
-    """Get defined queries from the engine."""
-    return queries(**kwargs)
+def get_queries(index, doc_type, **kwargs):
+    """Return queries defined for the given index and doc_type."""
+    MATCHER_QUERIES = current_app.config.get('MATCHER_QUERIES')
+    try:
+        return MATCHER_QUERIES[index][doc_type]
+    except (KeyError, TypeError):
+        raise NoQueryDefined('No query defined for index {index} and doc_type'
+                             ' {doc_type} in MATCHER_QUERIES.'.format(
+                                 index=index, doc_type=doc_type))
+
+
+def _build_result(hits):
+    return [MatchResult(
+        hit['_id'],
+        Record(hit['_source']),
+        hit['_score']) for hit in hits
+    ]
 
 
 def _merge(d1, d2):
@@ -73,6 +91,8 @@ def _get_values(record, match):
     rest of the code expects.
     """
     result = record.get(match, [])
+    if not result:
+        return []
     if not isinstance(result, list):
         result = [result]
 

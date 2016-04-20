@@ -22,44 +22,127 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Matcher engine dispatcher."""
+"""Matcher engine performing queries to the search backend."""
 
+import six
 from flask import current_app
-
-from .errors import NoEngineDefined
-from .registry import engines
-
-
-def exact(**kwargs):
-    """Dispatch the exact call to the engine."""
-    return _get_engine().exact(**kwargs)
+from invenio_records import Record
+from invenio_search import current_search_client
+from werkzeug import import_string
 
 
-def fuzzy(**kwargs):
-    """Dispatch the fuzzy call to the engine."""
-    return _get_engine().fuzzy(**kwargs)
+def search(index, doc_type, body):
+    """Perform search to external client."""
+    return current_search_client.search(
+        index=index, doc_type=doc_type, body=body
+    )
 
 
-def free(**kwargs):
-    """Dispatch the free call to the engine."""
-    return _get_engine().free(**kwargs)
+def exact(index, doc_type, match, values, **kwargs):
+    """Build an exact query and send it to Elasticsearch."""
+    exact_query = _build_exact_query(match, values, **kwargs)
+    return search(index, doc_type, exact_query)
 
 
-def queries(**kwargs):
-    """Dispatch the queries call to the engine."""
-    return _get_engine().queries(**kwargs)
+def fuzzy(index, doc_type, match, values, **kwargs):
+    """Build a fuzzy query and send it to Elasticsearch."""
+    fuzzy_query = _build_fuzzy_query(index, doc_type, match, values, **kwargs)
+    return search(index, doc_type, fuzzy_query)
 
 
-def _get_engine(engine={}):
-    """Get the configured engine.
+def free(index, doc_type, query, **kwargs):
+    """Build a free query and send it to Elasticsearch."""
+    free_query = _build_free_query(query, **kwargs)
+    return search(index, doc_type, free_query)
 
-    Abuses the fact that mutable default arguments are captured in the closure
-    environment to cache the value of the engine for subsequent calls."""
-    if not engine:
-        try:
-            engine = engines[current_app.config['MATCHER_ENGINE']]
-        except KeyError:
-            raise NoEngineDefined('Engine not discovered in the registry, or'
-                                  ' not defined in MATCHER_ENGINE')
 
-    return engine
+def _build_exact_query(match, values, **kwargs):
+    """Build an exact query."""
+    if values == []:
+        return {}
+
+    result = {
+        'query': {
+            'filtered': {
+                'filter': {
+                    'or': []
+                }
+            }
+        }
+    }
+
+    for value in values:
+        subquery = {
+            'query': {
+                'filtered': {
+                    'filter': {
+                        'term': {
+                            match: value
+                        }
+                    }
+                }
+            }
+        }
+
+        result['query']['filtered']['filter']['or'].append(subquery)
+
+    return result
+
+
+def _build_fuzzy_query(index, doc_type, match, values, **kwargs):
+    """Build a fuzzy query."""
+    doc = _build_doc(match, values)
+    result = _build_mlt_query(doc, index, doc_type, **kwargs)
+
+    return result
+
+
+def _build_doc(match, values):
+    """Build a fake document to use in an mlt query."""
+    result = {}
+
+    tmp = result
+
+    parts = match.split('.')
+    for part in parts[:-1]:
+        tmp = tmp.setdefault(part, {})
+
+    tmp[parts[-1]] = values
+
+    return result
+
+
+def _build_mlt_query(doc, index, doc_type, **kwargs):
+    """Build an mlt query."""
+    min_score = kwargs.get('min_score', 1)
+    min_doc_freq = kwargs.get('min_doc_freq', 1)
+    min_term_freq = kwargs.get('min_term_freq', 1)
+
+    return {
+        'min_score': min_score,
+        'query': {
+            'more_like_this': {
+                'docs': [
+                    {
+                        '_index': index,
+                        '_type': doc_type,
+                        'doc': doc
+                    }
+                ]
+            }
+        },
+        'min_doc_freq': min_doc_freq,
+        'min_term_freq': min_term_freq
+    }
+
+
+def _build_free_query(query, **kwargs):
+    """Build a free query.
+
+    FIXME(jacquerie): instead of a blind import_string we could fetch
+    the query from a registry of queries.
+    """
+    if isinstance(query, six.string_types):
+        query_func = import_string(query)
+        return query_func(**kwargs)
+    return {}

@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
+#
 # This file is part of Invenio.
-# Copyright (C) 2015 CERN.
+# Copyright (C) 2015, 2016 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -24,10 +26,10 @@
 
 
 class MatchResult(object):
-
     """Matcher - represent a result."""
 
     def __init__(self, id_, record, score):
+        """Initialize a match result with id, data and score."""
         self.id = id_
         self.record = record
         self.score = score
@@ -35,5 +37,6 @@ class MatchResult(object):
     def __eq__(self, other):
         """Two results are equal if they are the same record.
 
-        The score is an implementation detail, what matters is the record."""
+        The score is an implementation detail, what matters is the record.
+        """
         return self.record == other.record

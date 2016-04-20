@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015 CERN.
+# Copyright (C) 2016 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -21,3 +21,31 @@
 # In applying this license, CERN does not
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
+
+
+"""Module tests."""
+
+from __future__ import absolute_import, print_function
+
+from flask import Flask
+
+from invenio_matcher import InvenioMatcher
+
+
+def test_version():
+    """Test version import."""
+    from invenio_matcher import __version__
+    assert __version__
+
+
+def test_init():
+    """Test extension initialization."""
+    app = Flask('testapp')
+    ext = InvenioMatcher(app)
+    assert 'invenio-matcher' in app.extensions
+
+    app = Flask('testapp')
+    ext = InvenioMatcher()
+    assert 'invenio-matcher' not in app.extensions
+    ext.init_app(app)
+    assert 'invenio-matcher' in app.extensions
