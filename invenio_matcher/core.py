@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015 CERN.
+# Copyright (C) 2015, 2017 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -33,6 +33,7 @@ from invenio_records import Record
 from .engine import exact, free, fuzzy
 from .errors import InvalidQuery, NoQueryDefined, NotImplementedQuery
 from .models import MatchResult
+from .utils import get_value
 
 
 def execute(index, doc_type, query, record, **kwargs):
@@ -90,7 +91,7 @@ def _get_values(record, match):
     Ensures that the values will be a list, since this is what the
     rest of the code expects.
     """
-    result = record.get(match, [])
+    result = get_value(record, match, default=[])
     if not result:
         return []
     if not isinstance(result, list):

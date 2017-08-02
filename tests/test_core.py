@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015, 2016 CERN.
+# Copyright (C) 2015, 2016, 2017 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -184,6 +184,20 @@ def test_parse_query_with_extras(app, simple_record):
         assert match == 'title'
         assert values == ['foo bar']
         assert extras == {'foo': 'bar'}
+
+
+def test_parse_query_accepts_dotted_values(app, record):
+    """Parse a query accepting dotted values."""
+    with app.app_context():
+        query = {'type': 'exact', 'match': 'titles.title'}
+        record = Record(record)
+
+        _type, match, values, extras = _parse(query, record)
+
+        assert _type == 'exact'
+        assert match == 'titles.title'
+        assert values == ['foo bar']
+        assert extras == {}
 
 
 def test_parse_query_can_override_values(app, simple_record):
