@@ -32,8 +32,6 @@ import tempfile
 
 import pytest
 from flask import Flask
-from flask_celeryext import FlaskCeleryExt
-from flask_cli import FlaskCLI
 from invenio_db import InvenioDB, db
 from invenio_records import InvenioRecords
 from invenio_search import InvenioSearch
@@ -45,18 +43,12 @@ def app(request):
     instance_path = tempfile.mkdtemp()
     app = Flask(__name__, instance_path=instance_path)
     app.config.update(
-        CELERY_ALWAYS_EAGER=True,
-        CELERY_CACHE_BACKEND="memory",
-        CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
-        CELERY_RESULT_BACKEND="cache",
         SECRET_KEY="CHANGE_ME",
         SECURITY_PASSWORD_SALT="CHANGE_ME_ALSO",
         SQLALCHEMY_DATABASE_URI=os.environ.get(
             'SQLALCHEMY_DATABASE_URI', 'sqlite:///test.db'),
         TESTING=True,
     )
-    FlaskCLI(app)
-    FlaskCeleryExt(app)
     InvenioDB(app)
     InvenioRecords(app)
     InvenioSearch(app)
