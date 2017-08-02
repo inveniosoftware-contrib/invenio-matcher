@@ -32,7 +32,6 @@ import tempfile
 
 import pytest
 from flask import Flask
-from flask_cli import FlaskCLI
 from invenio_db import InvenioDB, db
 from invenio_records import InvenioRecords
 from invenio_search import InvenioSearch
@@ -50,7 +49,6 @@ def app(request):
             'SQLALCHEMY_DATABASE_URI', 'sqlite:///test.db'),
         TESTING=True,
     )
-    FlaskCLI(app)
     InvenioDB(app)
     InvenioRecords(app)
     InvenioSearch(app)
