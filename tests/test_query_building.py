@@ -111,6 +111,38 @@ def test_build_fuzzy_query():
     assert result == expected
 
 
+def test_build_fuzzy_query_accepts_a_doc():
+    """Build a fuzzy query from a passed document."""
+    expected = {
+        'min_score': 1,
+        'query': {
+            'more_like_this': {
+                'docs': [
+                    {
+                        '_index': 'records',
+                        '_type': 'record',
+                        'doc': {
+                            'titles': [
+                                {'title': 'foo bar'},
+                            ],
+                        },
+                    },
+                ],
+                'min_doc_freq': 1,
+                'min_term_freq': 1,
+            },
+        },
+    }
+    result = _build_fuzzy_query(
+        match={'titles': [{'title': 'foo bar'}]},
+        values=[],
+        index='records',
+        doc_type='record',
+    )
+
+    assert expected == result
+
+
 def test_build_doc():
     """Build a surrogated document."""
     expected = {'titles': {'title': 'foo bar'}}
