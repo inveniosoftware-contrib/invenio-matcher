@@ -40,8 +40,7 @@ def execute(index, doc_type, query, record, **kwargs):
     """Parse a query and send it to the engine, returning a list of hits."""
     _type, match, values, extras = _parse(query, record)
 
-    if not values:
-        # No values in the record to match with
+    if not values and not isinstance(match, dict):
         return []
 
     _kwargs = _merge(kwargs, extras)
@@ -91,6 +90,9 @@ def _get_values(record, match):
     Ensures that the values will be a list, since this is what the
     rest of the code expects.
     """
+    if not isinstance(match, six.string_types):
+        return []
+
     result = get_value(record, match, default=[])
     if not result:
         return []

@@ -91,7 +91,11 @@ def _build_exact_query(match, values, **kwargs):
 
 def _build_fuzzy_query(index, doc_type, match, values, **kwargs):
     """Build a fuzzy query."""
-    doc = _build_doc(match, values)
+    if isinstance(match, dict):
+        doc = match
+    else:
+        doc = _build_doc(match, values)
+
     result = _build_mlt_query(doc, index, doc_type, **kwargs)
 
     return result
