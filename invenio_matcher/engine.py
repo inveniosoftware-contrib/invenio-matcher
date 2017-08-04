@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015 CERN.
+# Copyright (C) 2015, 2017 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -128,11 +128,11 @@ def _build_mlt_query(doc, index, doc_type, **kwargs):
                         '_type': doc_type,
                         'doc': doc
                     }
-                ]
+                ],
+                'min_doc_freq': min_doc_freq,
+                'min_term_freq': min_term_freq,
             }
         },
-        'min_doc_freq': min_doc_freq,
-        'min_term_freq': min_term_freq
     }
 
 

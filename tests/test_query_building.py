@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015, 2016 CERN.
+# Copyright (C) 2015, 2016, 2017 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -95,11 +95,11 @@ def test_build_fuzzy_query():
                             }
                         }
                     }
-                ]
+                ],
+                'min_doc_freq': 1,
+                'min_term_freq': 1,
             }
         },
-        'min_term_freq': 1,
-        'min_doc_freq': 1
     }
 
     result = _build_fuzzy_query(
@@ -136,11 +136,11 @@ def test_build_mlt_query():
                             }
                         }
                     }
-                ]
+                ],
+                'min_doc_freq': 1,
+                'min_term_freq': 1,
             }
         },
-        'min_term_freq': 1,
-        'min_doc_freq': 1
     }
     result = _build_mlt_query(
         doc,
