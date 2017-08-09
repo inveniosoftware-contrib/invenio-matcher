@@ -143,6 +143,69 @@ def test_build_fuzzy_query_accepts_a_doc():
     assert expected == result
 
 
+def test_build_fuzzy_query_accepts_a_list_of_docs():
+    """Build a fuzzy query from a passed list of documents."""
+    expected = {
+        "query": {
+            "dis_max": {
+                "tie_breaker": 0.3,
+                "queries": [
+                    {
+                        "more_like_this": {
+                            "min_doc_freq": 1,
+                            "docs": [
+                                {
+                                    "doc": {
+                                        "titles": [
+                                            {
+                                                "title": "foo bar"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ],
+                            "boost": 20,
+                            "max_query_terms": 25,
+                            "min_term_freq": 1
+                        }
+                    },
+                    {
+                        "more_like_this": {
+                            "min_doc_freq": 1,
+                            "docs": [
+                                {
+                                    "doc": {
+                                        "authors": [
+                                            {
+                                                "full_name": "Doe, John"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ],
+                            "boost": 1,
+                            "max_query_terms": 25,
+                            "min_term_freq": 1
+                        }
+                    }
+                ]
+            }
+        },
+        "min_score": 1
+    }
+    result = _build_fuzzy_query(
+        match=[
+            {'titles': [{'title': 'foo bar'}], 'boost': 20},
+            {'authors': [{'full_name': 'Doe, John'}]}
+        ],
+        values=[],
+        index='records',
+        doc_type='record',
+    )
+
+    assert expected == result
+
+
 def test_build_doc():
     """Build a surrogated document."""
     expected = {'titles': {'title': 'foo bar'}}

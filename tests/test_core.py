@@ -31,9 +31,10 @@ import pytest
 
 from invenio_matcher.core import _merge, _parse, execute, get_queries
 from invenio_matcher.errors import InvalidQuery, NotImplementedQuery
+from invenio_matcher.models import MatchResult
 from invenio_records import Record
 
-from .helpers import empty_search_result
+from .helpers import empty_search_result, one_search_result
 
 
 def test_queries(app, matcher_config):
@@ -128,6 +129,38 @@ def test_execute_missing_data_in_key(app):
         record = Record({'title': None})
 
         assert execute(index, doc_type, query, record) == []
+
+
+def test_execute_match_dict(app, mocker):
+    """Handle dict in match key"""
+    mocker.patch('invenio_matcher.engine.search', one_search_result)
+
+    with app.app_context():
+        query = {'type': 'exact', 'match': {'title': 'title'}}
+        index = "records"
+        doc_type = "record"
+        record = Record({'title': 'foo bar'})
+
+        expected = [MatchResult(1, record, 1)]
+
+        assert execute(index, doc_type, query, record) == expected
+
+
+def test_execute_match_list(app, mocker):
+    """Handle list in match key"""
+    mocker.patch('invenio_matcher.engine.search', one_search_result)
+
+    with app.app_context():
+        query = {'type': 'exact', 'match': [
+            {'title': 'title'}, {'author': 'Doe, John'}]
+        }
+        index = "records"
+        doc_type = "record"
+        record = Record({'title': 'foo bar'})
+
+        expected = [MatchResult(1, record, 1)]
+
+        assert execute(index, doc_type, query, record) == expected
 
 
 def test_get_queries(app):
