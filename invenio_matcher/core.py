@@ -114,7 +114,10 @@ def _parse(query, record):
     # XXX(jacquerie): This allows the user to pass directly the values to be
     # retrieved from the record. This is an advanced feature, therefore is
     # not advertised in the public API.
-    values = query.get('values', _get_values(record, match))
+    if 'values' in query:
+        values = query['values']
+    else:
+        values = _get_values(record, match)
     match = query.get('with', match)
     extras = {k: v for k, v in six.iteritems(
         query) if k not in set(['type', 'match', 'with', 'values'])}
