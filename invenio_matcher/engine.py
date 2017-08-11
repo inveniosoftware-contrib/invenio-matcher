@@ -91,14 +91,15 @@ def _build_exact_query(match, values, **kwargs):
 
 def _build_fuzzy_query(index, doc_type, match, values, **kwargs):
     """Build a fuzzy query."""
+    if isinstance(match, list):
+        return _build_dis_max_query(match, index, doc_type, **kwargs)
+
     if isinstance(match, dict):
         doc = match
     else:
         doc = _build_doc(match, values)
 
-    result = _build_mlt_query(doc, index, doc_type, **kwargs)
-
-    return result
+    return _build_mlt_query(doc, index, doc_type, **kwargs)
 
 
 def _build_doc(match, values):
@@ -137,6 +138,47 @@ def _build_mlt_query(doc, index, doc_type, **kwargs):
                 'min_term_freq': min_term_freq,
             }
         },
+    }
+
+
+def _build_dis_max_query(docs, index, doc_type, **kwargs):
+    """Build an mlt query."""
+    def _generate_mlt_query(doc):
+        min_doc_freq = doc.pop('min_doc_freq', 1)
+        min_term_freq = doc.pop('min_term_freq', 1)
+        max_query_terms = doc.pop('max_query_terms', 25)
+        boost = doc.pop('boost', 1)
+        return {
+            "more_like_this": {
+                "min_doc_freq": min_doc_freq,
+                "docs": [
+                    {
+                        "doc": doc
+                    }
+                ],
+                "min_term_freq": min_term_freq,
+                "max_query_terms": max_query_terms,
+                "boost": boost
+            }
+        }
+
+    min_score = kwargs.get('min_score', 1)
+    tie_breaker = kwargs.get('tie_breaker', 0.3)
+
+    queries = []
+
+    for doc in docs:
+        queries.append(_generate_mlt_query(doc))
+
+    return {
+        'min_score': min_score,
+        'query': {
+            'dis_max': {
+                'tie_breaker': tie_breaker,
+                'queries': queries
+
+            }
+        }
     }
 
 
