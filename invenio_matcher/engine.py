@@ -24,15 +24,19 @@
 
 """Matcher engine performing queries to the search backend."""
 
+import json
 import six
 from flask import current_app
-from invenio_records import Record
 from invenio_search import current_search_client
 from werkzeug import import_string
 
 
 def search(index, doc_type, body):
     """Perform search to external client."""
+    if current_app.debug:
+        current_app.logger.debug(
+            json.dumps(body, indent=4)
+        )
     return current_search_client.search(
         index=index, doc_type=doc_type, body=body
     )
